@@ -49,6 +49,33 @@ export default function HomePage() {
   ])
   const [results, setResults] = useState<Generated[] | null>(null)
 
+  function parseVerseList(spec: string): number[] | null {
+    if (!spec || !spec.trim()) return null
+    const all: number[] = []
+    const parts = spec.split(',')
+    for (const p of parts) {
+      const token = p.trim()
+      if (!token) return null
+      const range = token.match(/^(\d+)\s*-\s*(\d+)$/)
+      if (range) {
+        const a = parseInt(range[1], 10)
+        const b = parseInt(range[2], 10)
+        if (!Number.isFinite(a) || !Number.isFinite(b) || a < 1 || b < 1 || b < a) return null
+        for (let i = a; i <= b; i++) all.push(i)
+        continue
+      }
+      const single = token.match(/^(\d+)$/)
+      if (single) {
+        const n = parseInt(single[1], 10)
+        if (!Number.isFinite(n) || n < 1) return null
+        all.push(n)
+        continue
+      }
+      return null
+    }
+    return Array.from(new Set(all)).sort((a, b) => a - b)
+  }
+
   useEffect(() => {
     let isMounted = true
     async function loadVersions() {
@@ -211,7 +238,9 @@ export default function HomePage() {
     if (!row.versionId) return 'Please select a version.'
     if (!row.bookId) return 'Please select a book.'
     if (!row.chapter) return 'Please select a chapter.'
-    if (!row.verse) return 'Please select a verse.'
+    if (!row.verse) return 'Please enter verses.'
+    if (!parseVerseList(row.verse))
+      return 'Invalid verses. Use formats like: 1, 1-2, 1,3, 1-2,4.'
     return null
   }
 
@@ -220,6 +249,10 @@ export default function HomePage() {
     [queries]
   )
   const allValid = !firstInvalidReason
+
+  function removeRow(idx: number) {
+    setQueries((prev) => prev.filter((_, i) => i !== idx))
+  }
 
   function addMore() {
     setQueries((prev) => [
@@ -244,19 +277,20 @@ export default function HomePage() {
     if (firstInvalidReason) return
     const groups: Generated[] = []
     for (const q of queries) {
+      const verseNums = parseVerseList(q.verse) || []
       const { data, error } = await supabase
         .from('verses')
         .select('verse, text')
         .eq('version_id', Number(q.versionId))
         .eq('book_id', Number(q.bookId))
         .eq('chapter', Number(q.chapter))
-        .eq('verse', Number(q.verse))
-        .single()
+        .in('verse', verseNums)
+        .order('verse', { ascending: true })
       const vLabel = versionOptions.find((v) => v.value === q.versionId)?.label ?? q.versionId
       const bLabel = q.books.find((b) => b.value === q.bookId)?.label ?? q.bookId
       groups.push({
         header: `${bLabel} ${q.chapter}:${q.verse} ${vLabel}`,
-        verses: error || !data ? [] : [{ number: data.verse, text: data.text }],
+        verses: error || !data ? [] : (data as any[]).map((d) => ({ number: d.verse, text: d.text })),
       })
     }
     setResults(groups)
@@ -266,8 +300,14 @@ export default function HomePage() {
     <main className="container">
       <section className="card">
         <h1>VerseGen</h1>
-        <p className="muted">Generate dummy bible verses</p>
+        <p className="muted">Generate bible verses</p>
         <form onSubmit={handleSubmit} className="rows">
+          <div className="row-headers">
+            <span className="version">Version</span>
+            <span className="book">Book</span>
+            <span className="chapter">Chapter</span>
+            <span className="verse">Verse</span>
+          </div>
           {queries.map((q, idx) => (
             <div className="row" key={idx}>
               <label className="field">
@@ -276,6 +316,7 @@ export default function HomePage() {
                   className="version"
                   value={q.versionId}
                   onChange={(e) => handleVersionChange(idx, e.target.value)}
+                  disabled={q.loadingBooks}
                 >
                   <option value="">---</option>
                   {versionOptions.map((v) => (
@@ -321,21 +362,27 @@ export default function HomePage() {
               </label>
 
               <label className="field">
-                <span className="sr-only">Verse</span>
-                <select
+                <span className="sr-only">Verse(s)</span>
+                <input
                   className="verse"
+                  type="text"
                   value={q.verse}
+                  placeholder="e.g. 1,3-4"
                   onChange={(e) => handleVerseChange(idx, e.target.value)}
-                  disabled={!q.versionId || !q.bookId || !q.chapter || q.loadingVerses}
-                >
-                  <option value="">---</option>
-                  {q.verses.map((v) => (
-                    <option key={v.value} value={v.value}>
-                      {v.label}
-                    </option>
-                  ))}
-                </select>
+                  disabled={!q.versionId || !q.bookId || !q.chapter}
+                />
               </label>
+
+              {queries.length > 1 && (
+                <button
+                  type="button"
+                  className="icon remove"
+                  onClick={() => removeRow(idx)}
+                  title="Remove row"
+                >
+                  ✕
+                </button>
+              )}
             </div>
           ))}
 

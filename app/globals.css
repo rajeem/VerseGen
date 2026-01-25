@@ -11,16 +11,16 @@ body {
 
 .container {
   max-width: 720px;
-  margin: 24px auto;
-  padding: 0 14px;
+  margin: 12px auto;
+  padding: 0 8px;
 }
 
 .card {
   background: #fff;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  padding: 18px;
-  margin-bottom: 16px;
+  padding: 12px;
+  margin-bottom: 12px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.04);
 }
 
@@ -37,24 +37,37 @@ h1 { margin: 0 0 4px 0; font-size: 24px; line-height: 1.2; }
 
 /* Rows: one-liner input groups */
 .rows { display: flex; flex-direction: column; gap: 10px; }
+.row-headers {
+  display: grid;
+  grid-template-columns: 100px 1fr 100px 100px auto;
+  gap: 0.25rem;
+  align-items: center;
+  font-weight: 600;
+  font-size: 14px;
+  color: #374151;
+  padding-bottom: 4px;
+}
 .row {
-  display: flex;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: 100px 1fr 100px 100px auto;
+  gap: 0.25rem;
   align-items: center;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  padding: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fafafa;
 }
 .field { display: inline-flex; flex-direction: column; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
 /* Field sizing for compact one-liner */
-.row .version { width: 88px; }
-.row .chapter, .row .verse { width: 84px; }
-.row .book { min-width: 160px; flex: 1; }
+/* No longer needed due to grid layout */
 
 label { display: flex; flex-direction: column; gap: 8px; font-weight: 600; font-size: 14px; color: #374151; }
 
-select, input[type="number"] {
+select, input[type="text"], input[type="number"] {
   padding: 9px 12px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
@@ -63,7 +76,7 @@ select, input[type="number"] {
   color: #111827;
 }
 
-select:focus, input[type="number"]:focus {
+select:focus, input[type="text"]:focus, input[type="number"]:focus {
   outline: 2px solid #2563eb33;
   border-color: #2563eb;
 }
@@ -98,13 +111,42 @@ h2 { margin: 0 0 10px 0; font-size: 18px; }
 .verses strong { margin-right: 8px; }
 
 @media (max-width: 640px) {
-  .container { margin: 16px auto; padding: 0 12px; }
-  .card { padding: 14px; border-radius: 10px; }
+  .container { margin: 8px auto; padding: 0 6px; }
+  .card { padding: 10px; border-radius: 10px; }
   .grid { grid-template-columns: 1fr; gap: 10px; }
-  .row { gap: 8px; }
-  .row .version { width: 84px; }
-  .row .chapter, .row .verse { width: 76px; }
-  .row .book { min-width: 140px; }
+  .row { gap: 0.25rem; grid-template-columns: 100px 1fr 100px 100px auto; }
+  .row-headers { grid-template-columns: 100px 1fr 100px 100px auto; }
   .actions { flex-direction: column; align-items: stretch; }
   button { width: 100%; }
+}
+
+@media (max-width: 510px) {
+  .row-headers {
+    display: none;
+  }
+  .row {
+    grid-template-columns: 100px 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 0.5rem;
+    padding: 10px;
+  }
+  .row .field:nth-child(1) { grid-column: 1; grid-row: 1; }
+  .row .field:nth-child(2) { grid-column: 2; grid-row: 1; }
+  .row .field:nth-child(3) { grid-column: 1; grid-row: 2; }
+  .row .field:nth-child(4) { grid-column: 2; grid-row: 2; }
+  .row button.icon.remove { grid-column: 3; grid-row: 1 / span 2; align-self: center; }
+}
+
+button.icon.remove {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+button.icon.remove:hover {
+  color: #dc2626;
 }
