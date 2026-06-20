@@ -299,7 +299,7 @@ export default function HomePage() {
   return (
     <main className="container">
       <section className="card">
-        <h1>VerseGen</h1>
+        <h1><span className="brand-verse">Verse</span><span className="brand-gen">Gen</span></h1>
         <p className="muted">Generate bible verses</p>
         <form onSubmit={handleSubmit} className="rows">
           <div className="row-headers">
@@ -393,7 +393,7 @@ export default function HomePage() {
             <button type="submit" disabled={!allValid}>Generate</button>
           </div>
           {firstInvalidReason && (
-            <div role="alert" style={{ color: '#b91c1c', marginTop: 8, fontSize: 14 }}>
+            <div role="alert" className="alert">
               {firstInvalidReason}
             </div>
           )}
