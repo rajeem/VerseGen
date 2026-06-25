@@ -2,6 +2,8 @@
 
 A minimal Next.js App Router project with a landing page to select Bible Version, Book, Chapter, and Verse. Clicking Generate renders a list of dummy verses.
 
+https://versegenerator.vercel.app
+
 ## Getting Started
 
 1. Install dependencies
